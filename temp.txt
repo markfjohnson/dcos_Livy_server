@@ -1,29 +1,19 @@
-FROM mesosphere/spark:1.1.0-2.1.1-hadoop-2.6
-MAINTAINER Mark Johnson <mjohnson@mesosphere.com>
-
-ENV SPARK_VERSION=2.1.1 def=$SPARK_VERSION
-ENV LIVY_BUILD_VERSION livy-server-0.3.0-SNAPSHOT
-ENV SPARK_HOME /opt/spark/dist
-
-# Set install path for Livy
-ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
-
-RUN apt-get update
-#RUN apt-get --purge reinstall oracle-java7-installer
-#RUN apt-get upgrade
-#RUN add-apt-repository ppa:webupd8team/java -y 
-#RUN apt-get update
-#RUN apt-get install oracle-java8-installer
-#RUN update-alternatives --config java
-
 
 RUN apt-get install -yq --no-install-recommends --force-yes maven
-RUN apt-get install -y git build-essential libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext unzip 
+RUN apt-get install -y git build-essential libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext unzip openjdk-8-jdk openjdk-8-jre
 
+
+#RUN curl $LIVY_DOWNLOAD_LINK -o /opt/$LIVY_SRC.zip
+#RUN cd /opt/$LIVY_SRC && mvn package
+#RUN cd /opt && unzip /opt/$LIVY_SRC.zip
+#RUN ls -lt /opt    
+#RUN cd /opt/$LIVY_SRC && mvn -DskipTests=true -Dspark.version=$SPARK_VERSION clean package
 
 # Clone Livy repository
 
 
+RUN git clone https://github.com/cloudera/livy.git 
+RUN ls -lt /apps/build
 RUN env
 RUN mkdir -p /apps/build && \
     cd /apps/build && \
