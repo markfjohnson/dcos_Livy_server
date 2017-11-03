@@ -43,29 +43,28 @@ RUN su -c "echo 'deb http://ppa.launchpad.net/git-core/ppa/ubuntu trusty main' >
 
 RUN apt-get update
 
-RUN rm -rf /usr/lib/python2.7/dist-packages/setuptools-20.7.0.egg-info
+#RUN rm -rf /usr/lib/python2.7/dist-packages/setuptools-20.7.0.egg-info
 RUN apt-get install -y \
-    		git \
-    		libjansi-java \
-		    libsvn1 \
-		    libcurl3 \
-            software-properties-common \
-            runit \
-            nginx \
-            krb5-user \
             curl \
+            git \
+            krb5-user \
+            libcurl3 \
+    		libjansi-java \
+            libsvn1 \
             maven \
-            openjdk-8-jdk \
+            nginx \
             python-pip \
+            python-setuptools \
             python3-pip \
             python3-setuptools \
-            python-setuptools \
-            unzip \
             r-base \
+            runit \
+            software-properties-common \
+            unzip \
             wget && \
     rm -rf /var/lib/apt/lists/*
     
-
+#            openjdk-8-jdk \
 
 RUN mkdir -p /opt/mesosphere/ && \
     cd /opt/mesosphere && \

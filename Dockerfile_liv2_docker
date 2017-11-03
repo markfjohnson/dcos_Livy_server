@@ -1,0 +1,2 @@
+FROM mganta/livy2-docker
+ADD init.sh /sbin/init.sh
