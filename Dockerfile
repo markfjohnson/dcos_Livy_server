@@ -51,27 +51,6 @@ ENV LIVY_BUILD_PATH /apps/build/livy
 # Set Spark home directory
 ENV SPARK_HOME /opt/spark/dist
 
-# Set native Mesos library path
-#ENV MESOS_NATIVE_JAVA_LIBRARY /usr/local/lib/libmesos.so
-
-# Mesos install
-#RUN wget http://repos.mesosphere.com/ubuntu/pool/main/m/mesos/mesos_$MESOS_BUILD_VERSION.ubuntu1404_amd64.deb && \
-#    dpkg -i mesos_$MESOS_BUILD_VERSION.ubuntu1404_amd64.deb && \
-#    rm mesos_$MESOS_BUILD_VERSION.ubuntu1404_amd64.deb
-
-# Spark ENV vars
-ENV SPARK_VERSION_STRING spark-$SPARK_VERSION-bin-hadoop2.6
-#ENV SPARK_DOWNLOAD_URL http://d3kbcqa49mib13.cloudfront.net/$SPARK_VERSION_STRING.tgz
-
-# Download and unzip Spark
-#RUN wget $SPARK_DOWNLOAD_URL && \
-#    mkdir -p $SPARK_HOME && \
-#    tar xvf $SPARK_VERSION_STRING.tgz -C /tmp && \
-#    cp -rf /tmp/$SPARK_VERSION_STRING/* $SPARK_HOME && \
-#    rm -rf -- /tmp/$SPARK_VERSION_STRING && \
-#    rm spark-$SPARK_VERSION-bin-hadoop2.6.tgz && \
-#    echo "spark.mesos.executor.docker.image mesosphere/spark:1.0.6-2.0.2-hadoop-2.6" > $SPARK_HOME/conf/spark-defaults.conf
-
 # Clone Livy repository
 RUN mkdir -p /apps/build && \
     cd /apps/build && \
@@ -92,5 +71,5 @@ RUN chmod +x entrypoint.sh
 # Expose port
 EXPOSE 8998
 RUN ls -lt
-ENTRYPOINT ["\entrypoint.sh"]
+ENTRYPOINT ["/opt/spark/dist/entrypoint.sh"]
   
