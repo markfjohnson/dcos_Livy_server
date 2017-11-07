@@ -3,15 +3,15 @@ MAINTAINER Mark Johnson <mjohnson@mesosphere.com>
 
 # Overall ENV vars
 ENV SPARK_VERSION 2.1.1
-#ENV MESOS_BUILD_VERSION 1.0.1-2.0.93
-ENV LIVY_BUILD_VERSION incubator-livy-0.4.0-incubating
-ENV LIVY_SRC_LINK https://github.com/apache/incubator-livy/archive/v0.4.0-incubating.zip
+ENV LIVY_BUILD_VERSION v0.4.0-incubating
+ENV LIVY_SRC_LINK https://github.com/apache/incubator-livy.git
+ENV LIVY_TARGET livy-server-0.4.0-incubating
 # Set install path for Livy
 ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
 # Set Spark home directory
 ENV SPARK_HOME /opt/spark/dist
 # Set build path for Livy
-#ENV LIVY_BUILD_PATH /apps/build/livy
+ENV LIVY_BUILD_PATH incubator-livy
 
 # Add R list
 RUN echo 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/' | sudo tee -a /etc/apt/sources.list.d/r.list && \
@@ -48,25 +48,30 @@ RUN pip install --upgrade setuptools
 
 
 
-# Add custom files, set permissions
-ADD entrypoint.sh .
-RUN chmod +x entrypoint.sh
+
 
 # Clone Livy repository
 RUN mkdir -p /apps/build && \
-    cd /apps/build
-#	curl -o $LIVY_SRC_LINK && \
-#	unzip $LIVY_BUILD_VERSION && \
-#    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package && \
-#    unzip $LIVY_BUILD_PATH/assembly/target/$LIVY_BUILD_VERSION.zip -d /apps && \
-#    mkdir -p $LIVY_APP_PATH/upload && mkdir -p $LIVY_APP_PATH/logs && \
-#    echo "livy.spark.master=mesos://zk://zk-1.zk:2181" >> $LIVY_APP_PATH/conf/livy.conf && \
-#    echo "livy.spark.deployMode = cluster" >> $LIVY_APP_PATH/conf/livy.conf
+    cd /apps/build && \
+	git clone -b $LIVY_BUILD_VERSION $LIVY_SRC_LINK && \
+	cd /apps/build/$LIVY_BUILD_PATH && \
+    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
 
+RUN unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/$LIVY_TARGET.zip -d /apps
+
+RUN cd /apps/build/$LIVY_BUILD_PATH/ && \
+    mkdir -p upload && mkdir -p logs && \
+    echo "livy.spark.master=mesos://zk://zk-1.zk:2181" >> conf/livy.conf && \
+    echo "livy.spark.deploy-mode = cluster" >> conf/livy.conf
+
+
+# Add custom files, set permissions
+ADD entrypoint.sh /apps/build/$LIVY_BUILD_PATH/entrypoint.sh
+RUN chmod +x /apps/build/$LIVY_BUILD_PATH/entrypoint.sh
 
 # Expose port
 EXPOSE 8998
 
-#ENTRYPOINT ["/opt/spark/dist/entrypoint.sh"]
+#ENTRYPOINT ["/apps/build/$LIVY_BUILD_PATH/entrypoint.sh"]
 WORKDIR /opt/spark/dist
   
