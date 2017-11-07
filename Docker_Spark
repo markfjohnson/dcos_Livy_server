@@ -18,53 +18,44 @@
 # docker build -t spark:git-`git rev-parse --short HEAD` .
 
 # Basing from Mesos image so the Mesos native library is present.
-FROM ubuntu:16.04
+FROM ubuntu:14.04
 MAINTAINER Michael Gummelt <mgummelt@mesosphere.io>, Arthur Rand <arand@mesosphere.io>
 
 # Set environment variables.
 ENV DEBIAN_FRONTEND "noninteractive"
 ENV DEBCONF_NONINTERACTIVE_SEEN "true"
 
-# Overall ENV vars
-ENV SPARK_VERSION 2.1.1
-ENV LIVY_BUILD_VERSION livy-server-0.3.0-SNAPSHOT
-
-# Set install path for Livy
-ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
-
-# Set build path for Livy
-ENV LIVY_BUILD_PATH /apps/build/livy
-
-ENV SPARK_HOME /opt/spark/dist
-
 # Upgrade package index and install basic commands.
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E1DD270288B4E6030699E45FA1715D88E1DF1F24
-RUN su -c "echo 'deb http://ppa.launchpad.net/git-core/ppa/ubuntu trusty main' > /etc/apt/sources.list.d/git.list"
-
-RUN apt-get update
-
-#RUN rm -rf /usr/lib/python2.7/dist-packages/setuptools-20.7.0.egg-info
-RUN apt-get install -y \
-            curl \
-            git \
-            krb5-user \
-            libcurl3 \
-    		libjansi-java \
-            libsvn1 \
-            maven \
-            nginx \
-            python-pip \
-            python-setuptools \
-            python3-pip \
-            python3-setuptools \
-            r-base \
-            runit \
+RUN apt-get update && \
+    apt-get install -y \
             software-properties-common \
+            runit \
+            nginx \
+            krb5-user \
+            curl \
             unzip \
-            wget && \
-    rm -rf /var/lib/apt/lists/*
-    
-#            openjdk-8-jdk \
+            r-base
+
+# packages
+RUN apt-get update && apt-get install -yq --no-install-recommends --force-yes \
+    wget \
+    git \
+    libjansi-java \
+    libsvn1 \
+    libcurl3 \
+    libevent-dev \
+    maven \
+    python-pip \
+    python-setuptools \
+    build-essential \
+    libapr1 \
+    libsasl2-modules && \ 
+    mkdir -p /apps/$LIVY_BUILD_VERSION/logs
+
+# python2.7 \
+
+RUN pip install --upgrade setuptools
+
 
 RUN mkdir -p /opt/mesosphere/ && \
     cd /opt/mesosphere && \
@@ -103,7 +94,7 @@ RUN ln -s /bin/grep /usr/bin/grep
 RUN ln -s /var/lib/runit/service/spark /etc/service/spark
 RUN ln -s /var/lib/runit/service/nginx /etc/service/nginx
 
-ADD spark-2.1.1-bin-hadoop2.6 /opt/spark/dist
+ADD dist /opt/spark/dist
 
 # required to run as nobody
 RUN chmod -R ugo+rw /etc/nginx
@@ -115,18 +106,25 @@ RUN chmod -R ugo+rw /var/run/
 RUN chmod -R ugo+rw /var/log/
 RUN chmod -R ugo+rw /opt/spark/dist
 
-
-# Add R list
-RUN echo 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/' | tee -a /etc/apt/sources.list.d/r.list && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
-
-# packages
-
-
+### Livy stuff
 # Overall ENV vars
 ENV SPARK_VERSION 2.1.1
-
 ENV LIVY_BUILD_VERSION livy-server-0.4.0-SNAPSHOT
+
+# Add R list
+RUN echo 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/' | sudo tee -a /etc/apt/sources.list.d/r.list && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+
+# Setup Oracle Java 8
+RUN add-apt-repository ppa:webupd8team/java
+RUN apt-get update
+RUN echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+RUN echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
+RUN apt-get install -yq oracle-java8-installer
+RUN apt-get install -yq oracle-java8-set-default
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV JRE_HOME /usr/lib/jvm/java-8-oracle/jre
+
 
 # Set install path for Livy
 ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
@@ -134,40 +132,34 @@ ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
 # Set build path for Livy
 ENV LIVY_BUILD_PATH /apps/build/livy
 
-# Set Hadoop config directory
-ENV HADOOP_CONF_DIR /etc/hadoop/conf
+
 
 # Set Spark home directory
 ENV SPARK_HOME /opt/spark/dist
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
-RUN pip3 install --upgrade pip
-#RUN pip install --upgrade pip3
-#pip lRUN pip uninstall setuptools
-RUN pip3 install --upgrade setuptools
 
-RUN pip3 install setuptools_scm 
-#RUN pip install sparkmagic
-
-#RUN cp /usr/lib/jvm/java-8-openjdk-amd64/lib/tools.jar 
 # Clone Livy repository
 RUN mkdir -p /apps/build && \
     cd /apps/build && \
 	git clone https://github.com/cloudera/livy.git && \
-	cd $LIVY_BUILD_PATH 
-#    mvn -X -DskipTests -Dspark.version=$SPARK_VERSION clean package && \
-#    unzip $LIVY_BUILD_PATH/assembly/target/$LIVY_BUILD_VERSION.zip -d /apps && \
-#    rm -rf $LIVY_BUILD_PATH && \
-#	mkdir -p $LIVY_APP_PATH/upload
-	
-# Add custom files, set permissions
-#ADD entrypoint.sh .
+	cd $LIVY_BUILD_PATH && \
+    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package && \
+    unzip $LIVY_BUILD_PATH/assembly/target/$LIVY_BUILD_VERSION.zip -d /apps && \
+    rm -rf $LIVY_BUILD_PATH && \
+    mkdir -p $LIVY_APP_PATH/upload && mkdir -p $LIVY_APP_PATH/logs && \
+    echo "livy.spark.master=mesos://leader.mesos:5050" >> $LIVY_APP_PATH/conf/livy.conf && \
+    echo "livy.spark.deployMode = cluster" >> $LIVY_APP_PATH/conf/livy.conf
+    mkdir 
 
-#RUN chmod +x entrypoint.sh
+# Add custom files, set permissions
+ADD entrypoint.sh .
+
+RUN chmod +x entrypoint.sh
 
 # Expose port
-# EXPOSE 8998
+EXPOSE 8998
+#RUN ls -lt
+#ENTRYPOINT ["/opt/spark/dist/entrypoint.sh"]
+  
+## End Livy
 
-#ENTRYPOINT ["/entrypoint.sh"]
-
-
-#WORKDIR /opt/spark/dist
+WORKDIR /opt/spark/dist
