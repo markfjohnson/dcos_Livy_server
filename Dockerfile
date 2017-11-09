@@ -12,6 +12,8 @@ ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
 ENV SPARK_HOME /opt/spark/dist
 # Set build path for Livy
 ENV LIVY_BUILD_PATH incubator-livy
+ENV HADOOP_CONF_DIR /etc/hadoop/conf
+ENV PATH "/usr/lib/mesos/3rdparty/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$SPARK_HOME"
 
 # Add R list
 RUN echo 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/' | sudo tee -a /etc/apt/sources.list.d/r.list && \
@@ -49,29 +51,30 @@ RUN pip install --upgrade setuptools
 
 
 
-
+#git clone -b $LIVY_BUILD_VERSION $LIVY_SRC_LINK && \
 # Clone Livy repository
 RUN mkdir -p /apps/build && \
     cd /apps/build && \
-	git clone -b $LIVY_BUILD_VERSION $LIVY_SRC_LINK && \
+	git clone $LIVY_SRC_LINK && \
 	cd /apps/build/$LIVY_BUILD_PATH && \
     mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
 
-RUN unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/$LIVY_TARGET.zip -d /apps
 
-RUN cd /apps/build/$LIVY_BUILD_PATH/ && \
-    mkdir -p upload && mkdir -p logs && \
-    echo "livy.spark.master=mesos://zk://zk-1.zk:2181" >> conf/livy.conf && \
-    echo "livy.spark.deploy-mode = cluster" >> conf/livy.conf
+#RUN unzip /apps/build/incubator-livy/assembly/target/$LIVY_TARGET.zip -d /apps &&\
+#    mkdir -p WORKDIR /apps/$LIVY_BUILD_PATH/upload && mkdir -p WORKDIR /apps/build/$LIVY_BUILD_PATH/logs && \
+#    echo "livy.spark.master=spark-dispatcher-hdfs-eventlog.marathon.l4lb.thisdcos.directory:7077" >> WORKDIR /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
+#    echo "livy.spark.deploy-mode = cluster" >> WORKDIR /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
+#    echo "livy.rsc.channel.log.level = DEBUG" >> WORKDIR /apps/build/$LIVY_BUILD_PATH/conf/livy.conf
 
-
+WORKDIR /apps/build/$LIVY_BUILD_PATH
 # Add custom files, set permissions
-ADD entrypoint.sh /apps/build/$LIVY_BUILD_PATH/entrypoint.sh
-RUN chmod +x /apps/build/$LIVY_BUILD_PATH/entrypoint.sh
+ADD log4j.properties conf
+ADD entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 # Expose port
 EXPOSE 8998
 
-#ENTRYPOINT ["/apps/build/$LIVY_BUILD_PATH/entrypoint.sh"]
-WORKDIR /opt/spark/dist
+
+
   
