@@ -3,9 +3,10 @@ MAINTAINER Mark Johnson <mjohnson@mesosphere.com>
 
 # Overall ENV vars
 ENV SPARK_VERSION 2.1.1
-ENV LIVY_BUILD_VERSION v0.4.0-incubating
+ENV LIVY_BUILD_VERSION v0.3.0-incubating
 ENV LIVY_SRC_LINK https://github.com/apache/incubator-livy.git
-ENV LIVY_TARGET livy-server-0.4.0-incubating
+ENV LIVY_TARGET livy-0.4.0-incubating-SNAPSHOT-bin
+
 # Set install path for Livy
 ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
 # Set Spark home directory
@@ -13,7 +14,7 @@ ENV SPARK_HOME /opt/spark/dist
 # Set build path for Livy
 ENV LIVY_BUILD_PATH incubator-livy
 ENV HADOOP_CONF_DIR /etc/hadoop/conf
-ENV PATH "/usr/lib/mesos/3rdparty/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$SPARK_HOME"
+ENV PATH "/usr/lib/mesos/3rdparty/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$SPARK_HOME/bin"
 
 # Add R list
 RUN echo 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/' | sudo tee -a /etc/apt/sources.list.d/r.list && \
@@ -48,25 +49,38 @@ RUN apt-get update && apt-get install -yq --no-install-recommends --force-yes \
 RUN pip install --upgrade setuptools
 
 
+RUN mkdir -p /apps/build && \
+    cd /apps/build && \
+	git clone https://github.com/cloudera/livy.git && \
+	cd livy && \
+    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
+
+
+#RUN unzip assembly/target/$LIVY_BUILD_VERSION.zip -d /apps && \
+#    rm -rf $LIVY_BUILD_PATH && \
+#    mkdir -p $LIVY_APP_PATH/upload && \
+#    echo "livy.spark.master=mesos://0.0.0.0:7077" >> $LIVY_APP_PATH/conf/livy.conf && \
+#    echo "livy.spark.deployMode = cluster" >> $LIVY_APP_PATH/conf/livy.conf
 
 
 
 #git clone -b $LIVY_BUILD_VERSION $LIVY_SRC_LINK && \
 # Clone Livy repository
-RUN mkdir -p /apps/build && \
-    cd /apps/build && \
-	git clone $LIVY_SRC_LINK && \
-	cd /apps/build/$LIVY_BUILD_PATH && \
-    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
+#RUN mkdir -p /apps/build && \
+#    cd /apps/build && \
+#	git clone $LIVY_SRC_LINK && \
+#	cd /apps/build/$LIVY_BUILD_PATH && \
+#    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
+#
+#mesos://zk://zk-1.zk:2181
+#spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077
+RUN unzip /apps/build/livy/assembly/target/livy-server-0.4.0-SNAPSHOT.zip -d /apps &&\
+    mkdir -p /apps/build/livy/upload && mkdir -p WORKDIR /apps/build/livy/logs && \
+    echo "livy.spark.master=mesos://zk://zk-1.zk:2181" >>  /apps/build/livy/conf/livy.conf && \
+    echo "livy.spark.deploy-mode = cluster" >>  /apps/build/livy/conf/livy.conf && \
+    echo "livy.rsc.channel.log.level = DEBUG" >> /apps/build/livy/conf/livy.conf
 
-
-#RUN unzip /apps/build/incubator-livy/assembly/target/$LIVY_TARGET.zip -d /apps &&\
-#    mkdir -p WORKDIR /apps/$LIVY_BUILD_PATH/upload && mkdir -p WORKDIR /apps/build/$LIVY_BUILD_PATH/logs && \
-#    echo "livy.spark.master=spark-dispatcher-hdfs-eventlog.marathon.l4lb.thisdcos.directory:7077" >> WORKDIR /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
-#    echo "livy.spark.deploy-mode = cluster" >> WORKDIR /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
-#    echo "livy.rsc.channel.log.level = DEBUG" >> WORKDIR /apps/build/$LIVY_BUILD_PATH/conf/livy.conf
-
-WORKDIR /apps/build/$LIVY_BUILD_PATH
+WORKDIR /apps/build/livy
 # Add custom files, set permissions
 ADD log4j.properties conf
 ADD entrypoint.sh .
@@ -74,6 +88,9 @@ RUN chmod +x entrypoint.sh
 
 # Expose port
 EXPOSE 8998
+#ENTRYPOINT ["./entrypoint.sh"]
+#ENTRYPOINT ["/bin/bash"]
+
 
 
 

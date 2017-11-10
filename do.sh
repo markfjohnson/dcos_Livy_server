@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -x
-docker build -t markfjohnson/livy:0.40 .
-#docker push markfjohnson/livy:0.40
-docker run  -ti markfjohnson/livy:0.40 /bin/bash
+docker build -t markfjohnson/livy:cdh .
+docker push markfjohnson/livy:cdh
+docker run  -ti markfjohnson/livy:cdh /bin/bash

@@ -1,49 +1,42 @@
 {
-  "id": "/livy4-spark",
+  "id": "/livycdh",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
+  "cmd": "/opt/spark/dist/sbin/start-mesos-dispatcher.sh --master mesos://zk://zk-1.zk:2181  && /apps/build/livy/bin/livy-server",
   "container": {
-    "type": "MESOS",
+    "portMappings": [
+      {
+        "containerPort": 8998,
+        "hostPort": 0,
+        "labels": {
+          "VIP_0": "/livycdh:8998"
+        },
+        "protocol": "tcp",
+        "servicePort": 10000,
+        "name": "livy"
+      }
+    ],
+    "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "markfjohnson/livy:0.40",
-      "forcePullImage": true,
+      "image": "markfjohnson/livy:cdh",
+      "forcePullImage": false,
+      "privileged": false,
       "parameters": []
     }
   },
   "cpus": 1,
   "disk": 0,
-  "env": {
-    "SPARK_HOME": "/opt/spark/dist",
-    "PATH": "/usr/bin:/bin:/opt/spark/dist/bin",
-    "HADOOP_CONF_DIR":"/etc/hadoop/conf"
-  },
-  "healthChecks": [
-    {
-      "gracePeriodSeconds": 300,
-      "ignoreHttp1xx": false,
-      "intervalSeconds": 60,
-      "maxConsecutiveFailures": 3,
-      "port": 8998,
-      "timeoutSeconds": 123,
-      "delaySeconds": 15,
-      "protocol": "MESOS_HTTP"
-    }
-  ],
   "instances": 1,
   "labels": {
-    "DCOS_SERVICE_SCHEME": "http",
-    "DCOS_SERVICE_NAME": "livy4-spark",
-    "DCOS_SERVICE_PORT_INDEX": "0",
     "HAPROXY_GROUP": "external"
   },
   "maxLaunchDelaySeconds": 3600,
-  "mem": 1024,
+  "mem": 4000,
   "gpus": 0,
   "networks": [
     {
-      "name": "dcos",
-      "mode": "container"
+      "mode": "container/bridge"
     }
   ],
   "requirePorts": false,
@@ -56,6 +49,7 @@
     "inactiveAfterSeconds": 0,
     "expungeAfterSeconds": 0
   },
+  "healthChecks": [],
   "fetch": [],
   "constraints": []
 }

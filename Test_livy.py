@@ -1,6 +1,6 @@
 import json, pprint, requests, textwrap, time, json
-host="http://34.214.84.60:10007"
-
+#host="http://http://34.215.91.71:10104"
+host="http://localhost:8998"
 data = {'kind': 'pyspark',
         'queue':'',
         'pyFiles': [],

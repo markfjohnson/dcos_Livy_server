@@ -1,5 +1,6 @@
 import json, pprint, requests, textwrap, time, json
-host="http://34.214.84.60:10007"
+host="http://34.215.91.71:10000"
+#host="http://localhost:8998"
 
 data = {
     "name" : "SparkPi Livy Example 2",

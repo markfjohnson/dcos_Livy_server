@@ -2,7 +2,7 @@
 dcos marathon app add https://raw.githubusercontent.com/vishnu2kmohan/dcos-toolbox/master/hdfs/hdfs.json
 dcos package install --yes marathon-lb
 dcos package install --yes spark
-dcos marathon app add livy.json
+#dcos marathon app add livy.json
 dcos marathon app add spark-dispatcher-ucr-hdfs-eventlog-external-volume.json
 #
 # Configure HDFS for history server
