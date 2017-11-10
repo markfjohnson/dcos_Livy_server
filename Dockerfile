@@ -76,7 +76,7 @@ RUN mkdir -p /apps/build && \
 #spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077
 RUN unzip /apps/build/livy/assembly/target/livy-server-0.4.0-SNAPSHOT.zip -d /apps &&\
     mkdir -p /apps/build/livy/upload && mkdir -p WORKDIR /apps/build/livy/logs && \
-    echo "livy.spark.master=mesos://zk://zk-1.zk:2181" >>  /apps/build/livy/conf/livy.conf && \
+    echo "livy.spark.master=spark://spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077" >>  /apps/build/livy/conf/livy.conf && \
     echo "livy.spark.deploy-mode = cluster" >>  /apps/build/livy/conf/livy.conf && \
     echo "livy.rsc.channel.log.level = DEBUG" >> /apps/build/livy/conf/livy.conf
 
