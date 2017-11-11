@@ -1,6 +1,6 @@
 import json, pprint, requests, textwrap, time, json
-#host="http://http://34.215.91.71:10104"
-host="http://localhost:8998"
+host="http://52.37.197.21:10000"
+#host="http://localhost:8998"
 data = {'kind': 'pyspark',
         'queue':'',
         'pyFiles': [],
@@ -14,8 +14,12 @@ r = requests.post(host + '/sessions', data=json.dumps(data), headers=headers)
 print(r.json())
 initial_state = json.loads(r.content)['state']
 loc = r.headers['location']
-while (initial_state=='starting'):
+id = 0
+while (initial_state=='starting' or initial_state=='running'):
     session_url = host + loc
     r = requests.get(session_url, headers=headers)
     initial_state = json.loads(r.content)['state']
+    id = json.loads(r.content)['id']
     print(r.json())
+
+

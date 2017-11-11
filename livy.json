@@ -20,7 +20,7 @@
     "volumes": [],
     "docker": {
       "image": "markfjohnson/livy:cdh",
-      "forcePullImage": false,
+      "forcePullImage": true,
       "privileged": false,
       "parameters": []
     }
@@ -32,7 +32,7 @@
     "HAPROXY_GROUP": "external"
   },
   "maxLaunchDelaySeconds": 3600,
-  "mem": 4000,
+  "mem": 4040,
   "gpus": 0,
   "networks": [
     {
@@ -51,5 +51,10 @@
   },
   "healthChecks": [],
   "fetch": [],
-  "constraints": []
+  "constraints": [],
+  "env": {
+    "LIBPROCESS_IP": "0.0.0.0",
+    "LIBPROCESS_PORT": "7228",
+    "SPARK_MESOS_DISPATCHER_HOST": "0.0.0.0.0"
+  }
 }
