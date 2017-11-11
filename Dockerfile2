@@ -1,5 +1,0 @@
-FROM mesosphere/spark:1.1.0-2.1.1-hadoop-2.6
-MAINTAINER Mark Johnson <mjohnson@mesosphere.com>
-
-# Overall ENV vars
-ENV SPARK_VERSION 2.1.1

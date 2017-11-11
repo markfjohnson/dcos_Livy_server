@@ -1,2 +1,0 @@
-export SPARK_VERSION=2.1.1
-export LIVY_BUILD_VERSION=livy-server-0.4.0-SNAPSHOT
