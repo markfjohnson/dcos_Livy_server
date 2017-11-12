@@ -51,8 +51,8 @@ RUN pip install --upgrade setuptools
 
 RUN mkdir -p /apps/build && \
     cd /apps/build && \
-	git clone https://github.com/cloudera/livy.git && \
-	cd livy && \
+	git clone https://github.com/markfjohnson/incubator-livy.git && \
+	cd $LIVY_BUILD_PATH && \
     mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
 
 
@@ -74,13 +74,14 @@ RUN mkdir -p /apps/build && \
 #
 #mesos://zk://zk-1.zk:2181
 #spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077
-RUN unzip /apps/build/livy/assembly/target/livy-server-0.4.0-SNAPSHOT.zip -d /apps &&\
-    mkdir -p /apps/build/livy/upload && mkdir -p WORKDIR /apps/build/livy/logs && \
-    echo "livy.spark.master=spark://spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077" >>  /apps/build/livy/conf/livy.conf && \
-    echo "livy.spark.deploy-mode = cluster" >>  /apps/build/livy/conf/livy.conf && \
-    echo "livy.rsc.channel.log.level = DEBUG" >> /apps/build/livy/conf/livy.conf
 
-WORKDIR /apps/build/livy
+RUN unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/livy-0.5.0-incubating-SNAPSHOT-bin.zip -d /apps &&\
+    mkdir -p /apps/build/$LIVY_BUILD_PATH/upload && mkdir -p WORKDIR /apps/build/$LIVY_BUILD_PATH/logs && \
+    echo "livy.spark.master=spark://spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
+    echo "livy.spark.deploy-mode = cluster" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
+    echo "livy.rsc.channel.log.level = DEBUG" >> /apps/build/$LIVY_BUILD_PATH/conf/livy.conf
+
+WORKDIR /apps/build/$LIVY_BUILD_PATH
 # Add custom files, set permissions
 ADD log4j.properties conf
 ADD entrypoint.sh .

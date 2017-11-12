@@ -1,5 +1,5 @@
 {
-  "id": "/livycdh",
+  "id": "/livy",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
   "cmd": "/opt/spark/dist/sbin/start-mesos-dispatcher.sh --master mesos://zk://zk-1.zk:2181  && /apps/build/livy/bin/livy-server",
@@ -19,7 +19,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "markfjohnson/livy:cdh",
+      "image": "markfjohnson/livy:0.50",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
