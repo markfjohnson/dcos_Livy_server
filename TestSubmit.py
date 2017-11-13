@@ -7,7 +7,6 @@
 import json, pprint, requests, textwrap, time, json
 host="http://34.211.170.250:10000"
 
-# "file": "http://downloads.mesosphere.com/spark/assets/spark-examples_2.10-1.4.0-SNAPSHOT.jar",
 data = {
     "name":"Spark-Pi-10",
     "file": "https://github.com/markfjohnson/dcos_Livy_server/raw/master/spark-examples_2.11-2.1.1.jar",
