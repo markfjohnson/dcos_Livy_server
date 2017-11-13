@@ -52,31 +52,10 @@ RUN mkdir -p /apps/build && \
     cd /apps/build && \
 	git clone https://github.com/markfjohnson/incubator-livy.git && \
 	cd $LIVY_BUILD_PATH && \
-    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
-
-
-#RUN unzip assembly/target/$LIVY_BUILD_VERSION.zip -d /apps && \
-#    rm -rf $LIVY_BUILD_PATH && \
-#    mkdir -p $LIVY_APP_PATH/upload && \
-#    echo "livy.spark.master=mesos://0.0.0.0:7077" >> $LIVY_APP_PATH/conf/livy.conf && \
-#    echo "livy.spark.deployMode = cluster" >> $LIVY_APP_PATH/conf/livy.conf
-
-
-
-#git clone -b $LIVY_BUILD_VERSION $LIVY_SRC_LINK && \
-# Clone Livy repository
-#RUN mkdir -p /apps/build && \
-#    cd /apps/build && \
-#	git clone $LIVY_SRC_LINK && \
-#	cd /apps/build/$LIVY_BUILD_PATH && \
-#    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package
-#
-#mesos://zk://zk-1.zk:2181
-#spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077
-
-RUN unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/livy-0.5.0-incubating-SNAPSHOT-bin.zip -d /apps &&\
+    mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package && \
+    unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/livy-0.5.0-incubating-SNAPSHOT-bin.zip -d /apps &&\
     mkdir -p /apps/build/$LIVY_BUILD_PATH/upload && mkdir -p WORKDIR /apps/build/$LIVY_BUILD_PATH/logs && \
-    echo "livy.spark.master=spark://spark-dispatcher-external-volume.marathon.l4lb.thisdcos.directory:7077" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
+    echo "livy.spark.master=spark://spark-dispatcher.marathon.l4lb.thisdcos.directory:7077" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
     echo "livy.spark.deploy-mode = cluster" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
     echo "livy.rsc.channel.log.level = DEBUG" >> /apps/build/$LIVY_BUILD_PATH/conf/livy.conf
 
