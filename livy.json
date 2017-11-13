@@ -2,7 +2,7 @@
   "id": "/livy",
   "backoffFactor": 1.15,
   "backoffSeconds": 1,
-  "cmd": "/opt/spark/dist/sbin/start-mesos-dispatcher.sh --master mesos://zk://zk-1.zk:2181  && /apps/build/livy/bin/livy-server",
+  "cmd": "/opt/spark/dist/sbin/start-mesos-dispatcher.sh --master mesos://zk://zk-1.zk:2181  && /apps/build/incubator-livy/bin/livy-server",
   "container": {
     "portMappings": [
       {
@@ -19,7 +19,7 @@
     "type": "DOCKER",
     "volumes": [],
     "docker": {
-      "image": "markfjohnson/livy:0.50",
+      "image": "markfjohnson/livy:0.50a",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
@@ -27,6 +27,23 @@
   },
   "cpus": 1,
   "disk": 0,
+  "env": {
+    "LIBPROCESS_IP": "0.0.0.0",
+    "LIBPROCESS_PORT": "7228",
+    "SPARK_MESOS_DISPATCHER_HOST": "0.0.0.0.0"
+  },
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 60,
+      "maxConsecutiveFailures": 3,
+      "portIndex": 0,
+      "timeoutSeconds": 20,
+      "delaySeconds": 15,
+      "protocol": "MESOS_HTTP",
+      "path": "/"
+    }
+  ],
   "instances": 1,
   "labels": {
     "HAPROXY_GROUP": "external"
@@ -49,12 +66,6 @@
     "inactiveAfterSeconds": 0,
     "expungeAfterSeconds": 0
   },
-  "healthChecks": [],
   "fetch": [],
-  "constraints": [],
-  "env": {
-    "LIBPROCESS_IP": "0.0.0.0",
-    "LIBPROCESS_PORT": "7228",
-    "SPARK_MESOS_DISPATCHER_HOST": "0.0.0.0.0"
-  }
+  "constraints": []
 }

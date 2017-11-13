@@ -48,7 +48,6 @@ RUN apt-get update && apt-get install -yq --no-install-recommends --force-yes \
 
 RUN pip install --upgrade setuptools
 
-
 RUN mkdir -p /apps/build && \
     cd /apps/build && \
 	git clone https://github.com/markfjohnson/incubator-livy.git && \
