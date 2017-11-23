@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-dcos marathon app add https://raw.githubusercontent.com/vishnu2kmohan/dcos-toolbox/master/hdfs/hdfs.json
+#dcos marathon app add https://raw.githubusercontent.com/vishnu2kmohan/dcos-toolbox/master/hdfs/hdfs.json
 dcos package install --yes marathon-lb
 
-dcos marathon app add spark-dispatcher-ucr.json
+#dcos marathon app add spark-dispatcher-ucr.json
 dcos marathon app add livy.json
 #
 # Configure HDFS for history server
