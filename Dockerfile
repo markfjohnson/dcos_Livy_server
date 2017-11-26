@@ -11,9 +11,25 @@ ENV LIVY_TARGET livy-0.4.0-incubating-SNAPSHOT-bin
 ENV LIVY_APP_PATH /apps/$LIVY_BUILD_VERSION
 # Set Spark home directory
 ENV SPARK_HOME /opt/spark/dist
+ENV SPARK_DISPATCHER_MESOS_PRINCIPAL ""
+ENV SPARK_DISPATCHER_MESOS_ROLE *
+ENV SPARK_DISPATCHER_MESOS_SECRET ""
+ENV SPARK_DISPATCHER_HOST localhost
+ENV SPARK_DISPATCHER_PORT 7077
+ENV SPARK_LOG_LEVEL INFO
+ENV SPARK_USER nobody
+
 # Set build path for Livy
 ENV LIVY_BUILD_PATH incubator-livy
 ENV HADOOP_CONF_DIR /etc/hadoop/conf
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV JRE_HOME /usr/lib/jvm/java-8-oracle/jre
+
+ENV NO_BOOTSTRAP true
+ENV LD_LIBRARY_PATH /opt/mesosphere/lib:/opt/mesosphere/libmesos-bundle/lib:/usr/lib
+ENV TERM xterm
+
+#  Finalize the PATH
 ENV PATH "/usr/lib/mesos/3rdparty/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$SPARK_HOME/bin"
 
 # Add R list
@@ -27,8 +43,7 @@ RUN echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-
 RUN echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
 RUN apt-get install -yq oracle-java8-installer
 RUN apt-get install -yq oracle-java8-set-default
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-ENV JRE_HOME /usr/lib/jvm/java-8-oracle/jre
+
 
 # packages
 RUN apt-get update && apt-get install -yq --no-install-recommends --force-yes \
@@ -53,24 +68,22 @@ RUN mkdir -p /apps/build && \
 	git clone https://github.com/markfjohnson/incubator-livy.git && \
 	cd $LIVY_BUILD_PATH && \
     mvn -DskipTests -Dspark.version=$SPARK_VERSION clean package && \
-    unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/livy-0.5.0-incubating-SNAPSHOT-bin.zip -d /apps &&\
-    mkdir -p /apps/build/$LIVY_BUILD_PATH/upload && mkdir -p WORKDIR /apps/build/$LIVY_BUILD_PATH/logs && \
+    unzip /apps/build/$LIVY_BUILD_PATH/assembly/target/livy-0.5.0-incubating-SNAPSHOT-bin.zip -d /apps
+RUN mkdir -p /apps/build/$LIVY_BUILD_PATH/upload && mkdir -p WORKDIR /apps/build/$LIVY_BUILD_PATH/logs && \
     echo "livy.spark.master=spark://spark-dispatcher.marathon.l4lb.thisdcos.directory:7077" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
     echo "livy.spark.deploy-mode = cluster" >>  /apps/build/$LIVY_BUILD_PATH/conf/livy.conf && \
-    echo "livy.rsc.channel.log.level = DEBUG" >> /apps/build/$LIVY_BUILD_PATH/conf/livy.conf
+    echo "livy.rsc.channel.log.level = ${SPARK_LOG_LEVEL}" >> /apps/build/$LIVY_BUILD_PATH/conf/livy.conf &&\
+    echo "spark.mesos.executor.docker.image=mesosphere/spark:1.1.0-2.1.1-hadoop-2.6" > $SPARK_HOME/conf/spark-defaults.conf
 
 WORKDIR /apps/build/$LIVY_BUILD_PATH
 # Add custom files, set permissions
 ADD log4j.properties conf
-ADD entrypoint.sh .
-RUN chmod +x entrypoint.sh
+#ADD entrypoint.sh .
+#RUN chmod +x entrypoint.sh
+
 
 # Expose port
-EXPOSE 8998
+EXPOSE 8998 7077 7228
 #ENTRYPOINT ["./entrypoint.sh"]
 #ENTRYPOINT ["/bin/bash"]
 
-
-
-
-  

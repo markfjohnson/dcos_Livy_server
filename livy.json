@@ -14,12 +14,36 @@
         "protocol": "tcp",
         "servicePort": 10000,
         "name": "livy"
+      },
+      {
+        "port": 0,
+        "protocol": "tcp",
+        "name": "dispatcher",
+        "labels": {
+          "VIP_0": "spark-dispatcher:7077"
+        }
+      },
+      {
+        "port": 0,
+        "protocol": "tcp",
+        "name": "dispatcher-ui",
+        "labels": {
+          "VIP_1": "spark-dispatcher:4040"
+        }
+      },
+      {
+        "port": 0,
+        "protocol": "tcp",
+        "name": "dispatcher-proxy",
+        "labels": {
+          "VIP_2": "spark-dispatcher:80"
+        }
       }
     ],
-    "type": "DOCKER",
+    "type": "MESOS",
     "volumes": [],
     "docker": {
-      "image": "markfjohnson/livy:0.50a",
+      "image": "markfjohnson/livy:0.50b",
       "forcePullImage": true,
       "privileged": false,
       "parameters": []
@@ -30,7 +54,19 @@
   "env": {
     "LIBPROCESS_IP": "0.0.0.0",
     "LIBPROCESS_PORT": "7228",
-    "SPARK_MESOS_DISPATCHER_HOST": "0.0.0.0.0"
+    "SPARK_MESOS_DISPATCHER_HOST": "0.0.0.0",
+    "SPARK_LOG_LEVEL": "DEBUG",
+    "SPARK_HOME": "/opt/spark/dist",
+    "SPARK_DISPATCHER_PRINCIPAL": "",
+    "SPARK_DISPATCHER_MESOS_ROLE": "*",
+    "SPARK_DISPATCHER_MESOS_SECRET": "",
+    "SPARK_USER": "nobody",
+    "HADOOP_CONF_DIR": "/etc/hadoop/conf",
+    "JAVA_HOME": "/usr/lib/jvm/jre1.8.0_112",
+    "LD_LIBRARY_PATH": "/opt/mesosphere/lib:/opt/mesosphere/libmesos-bundle/lib:/usr/lib",
+    "NO_BOOTSTRAP": "true",
+    "TERM": "xterm",
+    "PATH": "/usr/bin:/bin:/usr/lib/jvm/jre1.8.0_112/bin:/opt/spark/dist/bin"
   },
   "healthChecks": [
     {
@@ -39,14 +75,24 @@
       "maxConsecutiveFailures": 3,
       "portIndex": 0,
       "timeoutSeconds": 20,
-      "delaySeconds": 15,
+      "delaySeconds": 30,
       "protocol": "MESOS_HTTP",
       "path": "/"
     }
   ],
   "instances": 1,
   "labels": {
-    "HAPROXY_GROUP": "external"
+    "HAPROXY_GROUP": "external",
+    "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "livy",
+    "DCOS_PACKAGE_NAME": "spark",
+    "DCOS_PACKAGE_OPTIONS": "e30=",
+    "DCOS_PACKAGE_SOURCE": "https://universe.mesosphere.com/repo",
+    "DCOS_PACKAGE_VERSION": "2.1.0-2.2.0-1",
+    "DCOS_SERVICE_NAME": "spark-dispatcher",
+    "DCOS_SERVICE_PORT_INDEX": "2",
+    "DCOS_SERVICE_SCHEME": "http",
+    "SPARK_URI": ""
   },
   "maxLaunchDelaySeconds": 3600,
   "mem": 4040,
@@ -58,8 +104,8 @@
   ],
   "requirePorts": false,
   "upgradeStrategy": {
-    "maximumOverCapacity": 1,
-    "minimumHealthCapacity": 1
+    "maximumOverCapacity": 0,
+    "minimumHealthCapacity": 0
   },
   "killSelection": "YOUNGEST_FIRST",
   "unreachableStrategy": {
